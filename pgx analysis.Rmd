@@ -1,0 +1,51 @@
+---
+title: "PGx analysis"
+output: html_notebook
+---
+reading data
+```{r}
+library(readxl)
+responses <- read_excel("Genetic Counselors Knowledge of Pharmacogenomics.xlsx", 
+     skip = 2)
+
+```
+
+counting responses to each question
+```{r}
+responses$q2 <- responses$question_2=="CYP2C19 *1"
+responses$q3 <- responses$question_3=="Codeine"
+responses$q4 <- responses$question_4=="They are an ultra-metabolizer"
+responses$q5 <- responses$question_5=="Increased enzyme activity, causing someone to experience symptoms of a higher dose of the drug than they were given"
+responses$q6 <- responses$question_6=="False"
+responses$q7 <- responses$question_7!="Never"
+responses$q8 <- (responses$question_8=="Agree" || responses$question_8=="Strongly agree")
+responses$q9 <- (responses$question_9=="Agree" || responses$question_8=="Strongly agree")
+responses$q10 <- as.factor(responses$question_10)
+```
+
+converting NA responses to a zero value
+```{r}
+responses[is.na(responses)] <- 0
+```
+
+summation of correct answers in questions 2 through 6
+```{r}
+responses$knowledgesum <- responses$q2+responses$q3+responses$q4+responses$q5+responses$q6
+```
+
+number of participants that have greater than 2 questions correct within questions 2 through 6
+```{r}
+sum(responses$knowledgesum>2)
+```
+
+summation of correct answers in questions 2 through 9
+```{r}
+responses$totalsum <- responses$q2+responses$q3+responses$q4+responses$q5+responses$q6+responses$q7+responses$q8+responses$q9
+```
+
+number of participants that have greater than 4 questions correct within questions 2 through 9
+```{r}
+sum(responses$totalsum>4)
+```
+
+anova
