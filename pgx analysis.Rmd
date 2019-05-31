@@ -2,6 +2,10 @@
 title: "PGx analysis"
 output: html_notebook
 ---
+```{r}
+library("ggpubr")
+```
+
 reading data
 ```{r}
 library(readxl)
@@ -12,16 +16,18 @@ responses <- read_excel("Genetic Counselors Knowledge of Pharmacogenomics.xlsx",
 
 counting responses to each question
 ```{r}
-responses$q2 <- responses$question_2=="CYP2C19 *1"
-responses$q3 <- responses$question_3=="Codeine"
-responses$q4 <- responses$question_4=="They are an ultra-metabolizer"
-responses$q5 <- responses$question_5=="Increased enzyme activity, causing someone to experience symptoms of a higher dose of the drug than they were given"
-responses$q6 <- responses$question_6=="False"
-responses$q7 <- responses$question_7!="Never"
-responses$q8 <- (responses$question_8=="Agree" || responses$question_8=="Strongly agree")
-responses$q9 <- (responses$question_9=="Agree" || responses$question_8=="Strongly agree")
-responses$q10 <- as.factor(responses$question_10)
+responses$q2 <- as.integer(responses$question_2=="CYP2C19 *1")
+responses$q3 <- as.integer(responses$question_3=="Codeine")
+responses$q4 <- as.integer(responses$question_4=="They are an ultra-metabolizer")
+responses$q5 <- as.integer(responses$question_5=="Increased enzyme activity, causing someone to experience symptoms of a higher dose of the drug than they were given")
+responses$q6 <- as.integer(responses$question_6=="False")
+responses$q7 <- as.integer(responses$question_7!="Never")
+responses$q8 <- as.integer((responses$question_8=="Agree" | responses$question_8=="Strongly agree"))
+responses$q9 <- as.integer((responses$question_9=="Agree" | responses$question_9=="Strongly agree"))
+responses$q10 <- as.integer(as.factor(responses$question_10))
+responses$q13 <- as.integer(as.factor(responses$question_13))
 ```
+
 
 converting NA responses to a zero value
 ```{r}
@@ -48,4 +54,88 @@ number of participants that have greater than 4 questions correct within questio
 sum(responses$totalsum>4)
 ```
 
-anova
+correlation test between knowledge and relevancy score and when someone graduated
+
+```{r}
+cor.test(responses$q10, responses$totalsum, method = "pearson")
+```
+
+graph of above correlation test
+
+```{r}
+ggscatter(responses, x = "q10", y = "totalsum", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "gradyears", ylab = "score")
+```
+
+correlation test between agreeing with pharmacogenomic relevancy and what type of position the GC works in
+```{r}
+cor.test(responses$q13, responses$q9, method = "pearson")
+```
+
+
+```{r}
+ggscatter(responses, x = "q13", y = "q9", 
+          conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "typeofjob", ylab = "relevancy")
+```
+
+
+table so you can correlate the 1-5 above with category job type from survey
+```{r}
+table(as.factor(responses$question_13))
+table(as.integer(as.factor(responses$question_13))-1)
+```
+
+Group/count of job type and X is if pharmacogenomics is relevant or not
+```{r}
+res <- aggregate(responses$q9, by=list(responses$question_13, responses$q9), FUN=length)
+res[res$Group.2 == 1,]
+```
+
+
+correlation test between agreeing with pharmacogenomic relevancy and years since graduation
+```{r}
+cor.test(responses$q10, responses$q9, method = "pearson")
+```
+
+
+```{r}
+ggscatter(responses, x = "q10", y = "q9", 
+          conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "typeofjob", ylab = "relevancy")
+```
+
+
+table so you can correlate the 1 or 2 above to which answer in survey
+```{r}
+table(as.factor(responses$question_10))
+table(as.integer(as.factor(responses$question_10)))
+```
+
+Group/count of job type and X is if pharmacogenomics is relevant or not
+```{r}
+res <- aggregate(responses$q9, by=list(responses$question_10, responses$q9), FUN=length)
+res[res$Group.2 == 1,]
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
